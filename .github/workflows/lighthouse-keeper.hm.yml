@@ -1,0 +1,33 @@
+# lighthouse-keeper.yml
+name: Lighthouse Keeper
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+
+jobs:
+  check-resources:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Restore state cache
+      uses: actions/cache@v4
+      with:
+        path: lighthouse-state.json
+        key: lighthouse-state-${{ github.run_id }}
+        restore-keys: |
+          lighthouse-state-
+    
+    - name: Check resources and trigger builds
+      run: |
+        # Read lighthouse.ncl config
+        # Load lighthouse-state.json (or create if missing)
+        # Check GitHub APIs for changes
+        # Trigger workflows if needed
+        # Update lighthouse-state.json
+    
+    - name: Save state cache
+      uses: actions/cache/save@v4
+      with:
+        path: lighthouse-state.json
+        key: lighthouse-state-${{ github.run_id }}
