@@ -10,6 +10,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install mise and tools
+      uses: jdx/mise-action@v2
+      with:
+        cache: true  # This caches the tools, not mise itself
+        install: |
+          nickel@latest
+        # config-file: lighthouse/mise/config.toml
+
     - name: Restore state cache
       uses: actions/cache@v4
       with:
