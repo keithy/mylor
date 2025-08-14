@@ -2,10 +2,17 @@
 name: Lighthouse Keeper
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes
+    - cron: '*/30 * * * *'  # Every 30 minutes`
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
-  check-resources:
+  searchlight:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
