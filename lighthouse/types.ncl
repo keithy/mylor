@@ -1,4 +1,5 @@
 let harbour = import "../config/harbour.ncl" in
+let utils = import "./utils.ncl" in
 
 let ContainerTypeContract = 
   std.contract.from_predicate (fun container_type =>
@@ -36,8 +37,26 @@ let PipelinePathContract =
     check_interval | Number | default = harbour.default_check_interval,
   },
   
+  HarbourSystem = {
+    harbour | {
+      harbour_name | String,
+      container_types | Array String,
+      default_check_interval | Number,
+    },
+    lighthouse | {
+      check_interval | Number,
+      max_concurrent_checks | Number,
+      github_api_timeout | Number,
+      notification_channels | Array String,
+    },
+    pipelines | Array PipelineConfig,
+    resolved_at | optional String,
+    source_repo | optional String,
+  },
+
   # Export contracts for reuse
   ContainerTypeContract = ContainerTypeContract,
   PipelinePathContract = PipelinePathContract,
   Harbour = harbour,
+  Utils = utils,
 }

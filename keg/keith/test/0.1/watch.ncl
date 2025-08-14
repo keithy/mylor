@@ -1,4 +1,3 @@
-let types = import "../../../../lighthouse/shared/types.ncl" in
 {
   pipeline = "keg/keith/test/0.1",
   github_resources = [
@@ -12,4 +11,4 @@ let types = import "../../../../lighthouse/shared/types.ncl" in
     }
   ],
   triggers = [@pipeline],
-} | types.PipelineConfig
+}
