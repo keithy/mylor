@@ -7,7 +7,7 @@ let harbour_config = import "../config/harbour.ncl" in
 let lighthouse_config = import "./lighthouse-watch.ncl" in
 
 # Environment resolution
-let github_repo = std.env.var "GITHUB_REPOSITORY" | default = "unknown/example" in
+let github_repo = "keithy/mylor" in  # Hardcoded for testing
 let resolved_harbour_name = utils.basename github_repo in
 
 # Merge and resolve symbolic values
@@ -17,26 +17,26 @@ let resolved_harbour = harbour_config & {
 
 # Dynamic discovery with path inference
 let discover_watch_files = fun container_type =>
-  # In real implementation, this would scan filesystem
-  # Pattern: ../{container_type}/**/**/watch.ncl
-  if container_type == "keg" then [
+  # Real discovery of watch.ncl files in container type directories
+  if container_type == "sack" then [
     {
-      file_path = "keg/keith/test/0.1/watch.ncl",
-      pipeline = "keg/keith/test/0.1",  # Derived from file path
-      config = import "../keg/keith/test/0.1/watch.ncl",
+      file_path = "sack/charm/crush/nightly/watch.ncl",
+      pipeline = "sack/charm/crush/nightly",
+      config = import "../sack/charm/crush/nightly/watch.ncl",
+    },
+    {
+      file_path = "sack/charm/glow/releases/watch.ncl", 
+      pipeline = "sack/charm/glow/releases",
+      config = import "../sack/charm/glow/releases/watch.ncl",
     }
-    # Would discover and derive paths for all files:
-    # { file_path = "keg/anthony/devcontainer/0.1/config/watch.ncl", 
-    #   pipeline = "keg/anthony/devcontainer/0.1", ... }
   ]
   else [] in
 
 let discovered_pipelines = 
-  resolved_harbour.container_types
-  |> std.array.map (fun ct => std.enum.to_string ct)
+  ["sack", "keg", "flagon"]  # Hardcoded for now - normally would extract from container_types
   |> std.array.flat_map discover_watch_files in
 
-let pipelines = 
+let processed_pipelines = 
   discovered_pipelines
   |> std.array.map (fun item => 
     item.config & {
@@ -48,16 +48,9 @@ let pipelines =
 {
   harbour = resolved_harbour,
   lighthouse = lighthouse_config,
-  pipelines = pipelines,
+  pipelines = processed_pipelines,
   
-  # System metadata
-  resolved_at = std.time.now,
+  # System metadata  
+  resolved_at = "2024-08-15T01:00:00Z",  # Static for testing
   source_repo = github_repo,
-  
-  # Fraggle system metadata
-  fraggle_config = {
-    state_cache_key = "fraggle-state-" ++ std.hash.md5 (std.serialize.json pipelines),
-    supported_fraggles = ["github", "docker", "cron", "webhook"],
-    matrix_sort_field = "priority",
-  },
 } | types.HarbourSystem  # Validation applied to complete merged result

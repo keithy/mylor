@@ -1,5 +1,5 @@
 [tools]
-nickel = "latest"
+"aqua:tweag/nickel" = "latest"
 # Add other tools you might need jq/gh are included in ubuntu runners
 # jq = "latest"
 # gh = "latest"  # GitHub CLI for API calls

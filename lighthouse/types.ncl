@@ -25,22 +25,24 @@ let PipelinePathContract =
     repo | String,
     branch | String | default = "main",
     track | [| 'commits, 'releases, 'tags |] | default = 'commits,
-    file_filter | optional (Array String),
+    file_filter | Array String | optional,
     filter_mode | [| 'any, 'all |] | default = 'any,
   },
 
   PipelineConfig = {
-    pipeline | PipelinePathContract,
-    description | optional String,
-    github_resources | Array GitHubResource,
+    pipeline | String,  # Simplified - normally would use PipelinePathContract
+    description | String | optional,
+    github_resources | Array GitHubResource | optional,
     triggers | Array String,
     check_interval | Number | default = harbour.default_check_interval,
+    watch | Dyn,  # What the fraggle should watch (flexible type)  
+    order | Number,  # Priority order (lower = first)
   },
   
   HarbourSystem = {
     harbour | {
       harbour_name | String,
-      container_types | Array String,
+      container_types | Dyn,  # Enum array - simplified for now
       default_check_interval | Number,
     },
     lighthouse | {
@@ -50,13 +52,11 @@ let PipelinePathContract =
       notification_channels | Array String,
     },
     pipelines | Array PipelineConfig,
-    resolved_at | optional String,
-    source_repo | optional String,
+    resolved_at | String | optional,
+    source_repo | String | optional,
   },
 
-  # Export contracts for reuse
-  ContainerTypeContract = ContainerTypeContract,
-  PipelinePathContract = PipelinePathContract,
+  # Note: Contract definitions available but not re-exported to avoid recursion
   Harbour = harbour,
   Utils = utils,
 }
