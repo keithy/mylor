@@ -1,4 +1,4 @@
-# Harbour Architecture
+# Lighthouse Architecture
 
 ## Overview
 
@@ -24,17 +24,21 @@ The harbour system uses `container_types` as the foundation for pipeline discove
 ```
 
 The harbour system discovers pipelines in each container type directory:
-- `keg/**/**/watch.ncl` - Container pipelines
-- `flagon/**/**/watch.ncl` - Application pipelines  
-- `sack/**/**/watch.ncl` - Data pipelines
+- `keg/**/**/watch.ncl` - Pipelines creating air-tight developer containers
+- `flagon/**/**/watch.ncl` - Pipelines creating developer containers (with package upstreams)  
+- `sack/**/**/watch.ncl` - Pipelines creating miscellaneous items
 
 When a lighthouse module is present, it monitors external resources and can trigger these pipelines.
 
 ### Pipeline Hierarchy
 
-All pipelines follow a consistent 4-level hierarchy:
+All pipelines follow a 4-level hierarchy,
+the schema for 3 of these levels may be customised by *the Navy*
+configuring each harbour:
+
 ```
 {container_type}/{user}/{project}/{version}/
+{container_type}/{project}/{component}/{version}/
 ```
 
 Examples:
@@ -117,7 +121,10 @@ Harbours without lighthouse modules run pipelines through other triggers (manual
 - No external configuration needed for pipeline discovery
 - Each harbour can support different container type combinations
 
-### Scalable
+### ScalableAll pipelines follow a 4-level hierarchy,
+the schema for 3 of these levels may be customised by *the Navy*
+configuring each harbour:
+
 - Add new container type → automatic pipeline discovery
 - Remove container type → those pipelines ignored
 - Each container type represents different workload patterns
@@ -131,4 +138,6 @@ Harbours without lighthouse modules run pipelines through other triggers (manual
 ### Environment-Aware
 - Dynamic harbour naming from GITHUB_REPOSITORY
 - Symbolic resolution allows template reuse
-- Runtime environment drives configuration
+- Runtime environment drives configurationAll pipelines follow a 4-level hierarchy,
+the schema for 3 of these levels may be customised by *the Navy*
+configuring each harbour:
