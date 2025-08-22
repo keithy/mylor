@@ -1,0 +1,82 @@
+# DevOps workspace
+# Optimized for infrastructure, automation, and DevOps workflows
+
+[tools]
+# Infrastructure as Code
+terraform = "latest"
+"aqua:hashicorp/packer" = "latest"
+"aqua:ansible/ansible" = "latest"
+
+# Container and Kubernetes tools
+docker = "latest"
+kubectl = "latest"
+helm = "latest"
+"aqua:kubernetes-sigs/kustomize" = "latest"
+
+# Cloud CLIs
+"aqua:aws/aws-cli" = "latest"
+"aqua:Azure/azure-cli" = "latest"
+"aqua:GoogleCloudPlatform/google-cloud-sdk" = "latest"
+
+# Development tools
+go = "1.23"
+python = "3.12"
+node = "20"
+gh = "latest"
+jq = "latest"
+
+# Security and compliance
+"aqua:aquasecurity/trivy" = "latest"
+"aqua:mozilla/sops" = "latest"
+
+# Networking and debugging
+"aqua:stern/stern" = "latest"
+"aqua:derailed/k9s" = "latest"
+
+[env]
+KUBE_EDITOR = "vim"
+TERRAFORM_LOG = "INFO"
+ANSIBLE_HOST_KEY_CHECKING = "False"
+WORKSPACE = "/home/dev/workspace"
+EDITOR = "vim"
+
+[tasks.tf-init]
+description = "Initialize Terraform in current directory"
+run = '''
+if [ -f main.tf ] || [ -f *.tf ]; then
+    terraform init
+    echo "Terraform initialized"
+else
+    echo "No Terraform files found in current directory"
+fi
+'''
+
+[tasks.tf-plan]
+description = "Run Terraform plan"
+run = '''
+terraform plan
+'''
+
+[tasks.k8s-context]
+description = "Show current Kubernetes context"
+run = '''
+kubectl config current-context
+kubectl get nodes
+'''
+
+[tasks.docker-cleanup]
+description = "Clean up Docker containers and images"
+run = '''
+echo "Cleaning up stopped containers..."
+docker container prune -f
+echo "Cleaning up unused images..."
+docker image prune -f
+echo "Docker cleanup complete"
+'''
+
+[tasks.security-scan]
+description = "Run security scan on current directory"
+run = '''
+echo "Running Trivy security scan..."
+trivy fs .
+'''

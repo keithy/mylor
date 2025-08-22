@@ -1,0 +1,59 @@
+# Web development focused workspace
+# Optimized for modern web development with React, Vue, etc.
+
+[tools]
+# JavaScript/TypeScript ecosystem
+node = "20"
+pnpm = "latest"
+yarn = "latest"
+bun = "latest"
+
+# Development tools
+gh = "latest"
+jq = "latest"
+
+# Build and bundling tools
+"npm:vite" = "latest"
+"npm:@vitejs/plugin-react" = "latest"
+"npm:typescript" = "latest"
+"npm:eslint" = "latest"
+"npm:prettier" = "latest"
+
+# Browser automation
+"npm:playwright" = "latest"
+
+[env]
+NODE_ENV = "development"
+EDITOR = "code"
+BROWSER = "chrome"
+WORKSPACE = "/home/dev/workspace"
+
+[tasks.init-react]
+description = "Initialize a new React project"
+run = '''
+cd $WORKSPACE
+npm create vite@latest "$1" -- --template react-ts
+cd "$1"
+npm install
+echo "React project '$1' initialized!"
+'''
+
+[tasks.init-vue]
+description = "Initialize a new Vue project"
+run = '''
+cd $WORKSPACE
+npm create vue@latest "$1" -- --typescript --router --pinia
+cd "$1"
+npm install
+echo "Vue project '$1' initialized!"
+'''
+
+[tasks.dev-server]
+description = "Start development server"
+run = '''
+if [ -f package.json ]; then
+    npm run dev
+else
+    echo "No package.json found. Initialize a project first."
+fi
+'''

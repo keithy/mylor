@@ -1,0 +1,64 @@
+# Data Science workspace
+# Optimized for data analysis, ML, and scientific computing
+
+[tools]
+# Data science languages
+python = "3.12"
+r = "latest"
+julia = "latest"
+
+# Development tools
+gh = "latest"
+jq = "latest"
+git = "latest"
+
+# Python packages (via pipx for global CLI tools)
+"pipx:jupyter" = "latest"
+"pipx:jupyterlab" = "latest"
+"pipx:pandas" = "latest"
+"pipx:numpy" = "latest"
+"pipx:scipy" = "latest"
+"pipx:matplotlib" = "latest"
+"pipx:seaborn" = "latest"
+"pipx:scikit-learn" = "latest"
+"pipx:tensorflow" = "latest"
+"pipx:torch" = "latest"
+
+[env]
+JUPYTER_CONFIG_DIR = "/home/dev/.jupyter"
+PYTHONPATH = "/home/dev/workspace/libs"
+EDITOR = "vim"
+WORKSPACE = "/home/dev/workspace"
+
+[tasks.jupyter-lab]
+description = "Start JupyterLab server"
+run = '''
+cd $WORKSPACE
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+'''
+
+[tasks.jupyter-notebook]
+description = "Start Jupyter Notebook server"
+run = '''
+cd $WORKSPACE
+jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+'''
+
+[tasks.setup-env]
+description = "Set up Python virtual environment with common packages"
+run = '''
+cd $WORKSPACE
+python -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install pandas numpy scipy matplotlib seaborn scikit-learn jupyter jupyterlab
+echo "Virtual environment created and activated"
+echo "Use 'source venv/bin/activate' to activate it"
+'''
+
+[tasks.r-session]
+description = "Start R interactive session"
+run = '''
+cd $WORKSPACE
+R
+'''

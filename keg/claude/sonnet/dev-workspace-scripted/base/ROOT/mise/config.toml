@@ -1,0 +1,46 @@
+# Base developer workspace configuration
+# This provides a minimal set of tools for general development
+
+[tools]
+# Language runtimes
+node = "20"
+python = "3.12"
+go = "1.23"
+
+# Development tools
+git = "latest"
+jq = "latest"
+gh = "latest"
+"aqua:tweag/nickel" = "latest"
+
+# Container tools  
+docker = "latest"
+
+# System utilities
+"aqua:BurntSushi/ripgrep" = "latest"
+"aqua:sharkdp/fd" = "latest"
+"aqua:sharkdp/bat" = "latest"
+"aqua:bootandy/dust" = "latest"
+
+[env]
+# Development environment variables
+EDITOR = "vim"
+WORKSPACE = "/home/dev/workspace"
+
+[tasks.setup]
+description = "Set up development environment"
+run = '''
+echo "Setting up developer workspace..."
+echo "Node: $(node --version)"
+echo "Python: $(python3 --version)"
+echo "Go: $(go version)"
+echo "Workspace ready at: $WORKSPACE"
+'''
+
+[tasks.clean]
+description = "Clean workspace temporary files"
+run = '''
+find $WORKSPACE -name "*.tmp" -delete
+find $WORKSPACE -name ".DS_Store" -delete
+echo "Workspace cleaned"
+'''
