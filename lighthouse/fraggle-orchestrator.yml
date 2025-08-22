@@ -3,10 +3,20 @@ on:
   #schedule:
   #  - cron: '*/15 * * * *'  # Every 15 minutes
   workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug output to see horizon view'
+        type: boolean
+        default: false
 
 jobs:
   fraggle-discovery:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    env:
+      DEBUG: ${{ inputs.debug }}
+      HORIZON: lighthouse/horizon.ncl
+      LIGHTHOUSE: lighthouse/config/lighthouse.ncl  
+      STATE_DIR: .fraggle-state
     outputs:
       build-matrix: ${{ steps.collect-matrix.outputs.matrix }}
     
@@ -17,51 +27,48 @@ jobs:
           submodules: recursive
 
       - name: Restore fraggle states
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: .fraggle-state/
+          path: ${{ env.STATE_DIR }}/
           key: fraggle-state-${{ hashFiles('**/watch.ncl', '**/harbour.ncl') }}-${{ github.run_number }}
           restore-keys: |
             fraggle-state-${{ hashFiles('**/watch.ncl', '**/harbour.ncl') }}-
             fraggle-state-
 
-      - name: Setup mise
-        run: |
-          curl https://mise.run | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install mise and tools
+        uses: jdx/mise-action@v2
+        with:
+          cache: true
+          install: |
+            nickel@latest
 
-      - name: Install tools
-        run: mise install
-        working-directory: lighthouse/mise
-
-      - name: Generate harbour config
-        id: harbour-config
+      - name: Debug - Show full horizon
+        if: inputs.debug
         run: |
-          # Use lighthouse system to generate complete merged config
-          nickel export lighthouse/system.ncl --output json > harbour-system.json
-          echo "Generated harbour system config"
-        working-directory: .
+          echo "=== FULL HORIZON VIEW ==="
+          nickel eval "$HORIZON"
+          echo
+          echo "=== LIGHTHOUSE CONFIG ==="
+          nickel eval "$LIGHTHOUSE"
+          echo
 
       - name: Run fraggles
         id: run-fraggles
         run: |
-          mkdir -p .fraggle-state
           all_matrices='[]'
           
           # Discover and run all fraggle scripts
-          for fraggle_script in lighthouse/fraggle-scripts/fraggle-*.sh; do
-            if [[ -x "$fraggle_script" ]]; then
-              echo "Running fraggle: $fraggle_script"
-              
-              # Run fraggle with harbour config as input
-              fraggle_matrix=$(cat harbour-system.json | "$fraggle_script")
-              
-              # Merge with accumulated matrices
-              all_matrices=$(echo "$all_matrices" "$fraggle_matrix" | jq -s 'add')
-              
-              echo "Fraggle $(basename "$fraggle_script") contributed $(echo "$fraggle_matrix" | jq 'length') entries"
-            fi
-          done
+          while IFS= read -r -d '' fraggle_script; do
+            echo "Running fraggle: $fraggle_script"
+            
+            # Run fraggle (HORIZON env var provides config file)
+            fraggle_matrix=$("$fraggle_script")
+            
+            # Merge with accumulated matrices
+            all_matrices=$(echo "$all_matrices" "$fraggle_matrix" | jq -s 'add')
+            
+            echo "Fraggle $(basename "$fraggle_script") contributed $(echo "$fraggle_matrix" | jq 'length') entries"
+          done < <(find lighthouse/fraggles -name "*-fraggle-*.sh" -executable -printf '%f\t%p\0' | sort -z | cut -d$'\t' -f2)
           
           echo "Total matrix entries: $(echo "$all_matrices" | jq 'length')"
           echo "$all_matrices" > fraggle-build-matrix.json
@@ -82,10 +89,10 @@ jobs:
           jq '.' sorted-build-matrix.json
 
       - name: Save fraggle states
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: always()
         with:
-          path: .fraggle-state/
+          path: ${{ env.STATE_DIR }}/
           key: fraggle-state-${{ hashFiles('**/watch.ncl', '**/harbour.ncl') }}-${{ github.run_number }}
 
   trigger-watchman:

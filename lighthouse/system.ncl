@@ -4,7 +4,7 @@ let utils = import "./utils.ncl" in
 
 # Read pure config files
 let harbour_config = import "../config/harbour.ncl" in
-let lighthouse_config = import "./lighthouse-watch.ncl" in
+let lighthouse_config = import "../config/lighthouse.ncl" in
 
 # Environment resolution
 let github_repo = "keithy/mylor" in  # Hardcoded for testing

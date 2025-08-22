@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.env*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.key
+*.pem
+*.cert
+coverage/
+dist/
+build/
+run/
+test/
+.crush/

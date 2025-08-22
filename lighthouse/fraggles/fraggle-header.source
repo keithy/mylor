@@ -1,0 +1,114 @@
+#!/bin/bash
+# Standard Fraggle Header - Common functionality for all fraggles
+# Usage: source this file at the top of each fraggle script
+
+set -euo pipefail
+
+# Fraggle standard setup
+fraggle_setup() {
+    local fraggle_name="$1"
+    local filter_field="$2"  # Field to filter on (e.g. "schedule", "github")
+    
+    # Get horizon config from environment variable
+    if [[ -z "$HORIZON" ]]; then
+        echo "No HORIZON environment variable set" >&2
+        echo '[]'
+        exit 1
+    fi
+    
+    # Check if lighthouse config is available (optional for some fraggles)
+    if [[ -n "$LIGHTHOUSE" && ! -f "$LIGHTHOUSE" ]]; then
+        echo "Warning: LIGHTHOUSE config specified but not found at $LIGHTHOUSE" >&2
+    fi
+
+    # Setup state management
+    STATE_DIR="${STATE_DIR:-.fraggle-state}"
+    STATE_FILE="$STATE_DIR/$fraggle_name.json"
+    MATRIX_FILE="$STATE_DIR/$fraggle_name-matrix.json"
+    SHARED_STATE_FILE="$STATE_DIR/shared-discoveries.json"
+    
+    # Ensure state directory exists
+    mkdir -p "$STATE_DIR"
+    
+    # Initialize empty JSON state if not exists
+    if [[ ! -f "$STATE_FILE" ]]; then
+        echo '{}' > "$STATE_FILE"
+    fi
+    
+    # Initialize shared discoveries state if not exists
+    if [[ ! -f "$SHARED_STATE_FILE" ]]; then
+        echo '{"discoveries": {}}' > "$SHARED_STATE_FILE"
+    fi
+
+    # Check if we can see the horizon
+    if [[ ! -f "$HORIZON" ]]; then
+        echo "No horizon visible at $HORIZON" >&2
+        echo '[]'
+        exit 0
+    fi
+
+    echo "$fraggle_name fraggle scanning horizon at $(basename "$HORIZON")" >&2
+}
+
+# Filter pipelines using fraggle-specific filter and show debug if enabled
+fraggle_filter_horizon() {
+    local fraggle_name="${1:-fraggle}"
+    
+    # Get the filter from the fraggle-specific function
+    if ! declare -F horizon_filter >/dev/null; then
+        echo "Error: horizon_filter function not defined" >&2
+        echo '[]'
+        return 1
+    fi
+    
+    local filter_nickel
+    filter_nickel=$(horizon_filter)
+    
+    # Debug: Show what this fraggle can see on the horizon
+    if [[ "${DEBUG:-false}" == "true" ]]; then
+        echo "=== ${fraggle_name^^} FRAGGLE'S HORIZON VIEW ===" >&2
+        nickel eval <<< "$filter_nickel" >&2
+        echo "" >&2
+    fi
+
+    # Filter pipelines using Nickel and return JSON
+    nickel eval --format json <<< "$filter_nickel"
+}
+
+# Initialize empty matrix file
+fraggle_init_matrix() {
+    echo '[]' > "$MATRIX_FILE"
+}
+
+# Output final matrix and cleanup
+fraggle_output_matrix() {
+    if [[ -f "$MATRIX_FILE" ]]; then
+        cat "$MATRIX_FILE"
+        rm -f "$MATRIX_FILE"  # Clean up temp file
+    else
+        echo '[]'  # No entries generated
+    fi
+}
+
+# Add discovery to shared state
+fraggle_add_discovery() {
+    local discovery_key="$1"
+    local discovery_data="$2"
+    
+    jq --arg key "$discovery_key" --argjson data "$discovery_data" \
+       '.discoveries[$key] = $data' \
+       "$SHARED_STATE_FILE" > "$SHARED_STATE_FILE.tmp"
+    mv "$SHARED_STATE_FILE.tmp" "$SHARED_STATE_FILE"
+}
+
+# Read discovery from shared state
+fraggle_get_discovery() {
+    local discovery_key="$1"
+    jq -r --arg key "$discovery_key" '.discoveries[$key] // empty' "$SHARED_STATE_FILE"
+}
+
+# Check if discovery exists
+fraggle_has_discovery() {
+    local discovery_key="$1"
+    jq -e --arg key "$discovery_key" '.discoveries | has($key)' "$SHARED_STATE_FILE" >/dev/null
+}

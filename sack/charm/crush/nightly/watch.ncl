@@ -1,4 +1,4 @@
-let config = import "./config.ncl" in
+let config = import "./research.ncl" in
 {
   watch = config.schedule.nightly,
   order = 10,  # Lower numbers processed first
