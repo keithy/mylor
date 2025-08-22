@@ -10,7 +10,6 @@ Thumbs.db
 *.cert
 coverage/
 dist/
-build/
 run/
 test/
 .crush/
